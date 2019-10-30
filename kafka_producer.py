@@ -22,6 +22,8 @@ from time import time, sleep
 from json import dumps
 
 from kafka import KafkaProducer
+import subprocess
+
 
 def check_kafka_prcocess(logger=None):
     ''' Check if the kafka process is running or not '''
@@ -220,6 +222,7 @@ if __name__=="__main__":
     logger.info(Test_comment)
 
     delete_old_log_files(delete_flag=DELETE_FLAG, logger=logger, extension_list=extension_list)
+    
     main(logger=logger, kafka_path=kafka_path, filepath='../data/processed/downsampled/continuous_data.csv')
 
     logger.info(Test_comment)

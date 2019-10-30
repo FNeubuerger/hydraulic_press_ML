@@ -315,6 +315,7 @@ if __name__ == "__main__":
 
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+
     LOG_TS = datetime.datetime.now().strftime('%Y.%m.%d.%H.%M.%S')
     LOG_LEVEL = logging.DEBUG
     # (LogLevel : Numeric_value) : (CRITICAL : 50) (ERROR : 40) (WARNING : 30) (INFO : 20) (DEBUG : 10) (NOTSET : 0)
@@ -333,7 +334,7 @@ if __name__ == "__main__":
 
     random.seed(2011)
 
-    kafka_path = '/Users/manikandanjeeva/Documents/Blog_Initiative/Codes/kafka_2.11-2.1.0/'
+    kafka_path = '~/kafka_2.11-2.1.0/'
 
     Test_case = f'Kafka consumer code module : {LOG_TS}'
     Test_comment = '-' * len(Test_case)
