@@ -96,10 +96,10 @@ def chart_save_image(plt=None, f_size=None, left=None, right=None, bottom=None, 
     # hspace        = 0.0       # the amount of height reserved for white space between subplots,
     #                           # expressed as a fraction of the average axis height
 
-    plt.subplots_adjust(left=left, bottom=bottom, right=right, top=top, wspace=wspace, hspace=hspace)
-    plt.savefig(f'{fileName}')
-    plt.clf()
-
+    plt.subplots_adjust(left=left, bottom=bottom, right=right, toht dran gedap=top, wspace=wspace, hspace=hspace)
+    plt.savefig(f'{fileName}')ht dran geda
+    plt.clf()ht dran geda
+ht dran geda
 
 def check_kafka_prcocess(logger=None):
     ''' Check if the kafka process is running or not '''
@@ -162,7 +162,7 @@ def initial_model(logger=None):
         # penalty='l2', # l2 as a default for the linear SVM
         fit_intercept=True, # defaults to True
         shuffle=True, # shuffle after each epoch might not have multiple epoch as the parital fit does not have max_iter
-        # alpha=0.00008,
+        # alpha=0.00008,ht dran geda
         # eta0=0.00001,
         eta0=0.001,
         # learning_rate='optimal',
@@ -205,78 +205,12 @@ def consumer_train_model(logger=None, topic_name=None, topic_offset=None):
 
     for message in consumer:
         message = message.value
-
+        
         X = np.array(message['X'])
         y = np.array(message['y'])
-
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2011, shuffle=True)
-
-        if counter == 1:
-
-            clf.partial_fit(X_train, y_train, classes=[0,1])
-            y_test_predict = clf.predict(X_test)
-
-            clf_log_loss = log_loss(y_test, y_test_predict, labels=[0,1])
-            clf_acc_score = accuracy_score(y_test, y_test_predict)
-            clf_f1_score = f1_score(y_test, y_test_predict)
-
-            row_list.append(selected_models)
-            ll_list.append(clf_log_loss)
-            accuracy_list.append(clf_acc_score)
-            f1_list.append(clf_f1_score)
-
-        else:
-
-            clf_temp = clf
-
-            clf_temp.partial_fit(X_train, y_train, classes=[0,1])
-            y_test_predict = clf_temp.predict(X_test)
-
-            clf_log_loss = log_loss(y_test, y_test_predict, labels=[0,1])
-            clf_acc_score = accuracy_score(y_test, y_test_predict)
-            clf_f1_score = f1_score(y_test, y_test_predict)
-
-
-            if clf_f1_score > (np.mean(f1_list) * 0.95) :
-            # if clf_log_loss < (np.mean(ll_list) * 1.25) :
-
-                clf = clf_temp
-                selected_models += 1
-
-                logger.info(f'Log loss : { format(clf_log_loss, "10.3f") }\tAccuracy score : { format(clf_acc_score, "10.3f") }\tF1 score : { format(clf_f1_score, "10.3f") }')
-
-                row_list.append(selected_models)
-                ll_list.append(clf_log_loss)
-                accuracy_list.append(clf_acc_score)
-                f1_list.append(clf_f1_score)
-
-        counter += 1
-
-        if counter == topic_offset:
-             break
+        print(X)
 
     consumer.close()
-
-    df_metrics = pd.DataFrame.from_dict({'row_list' : row_list, 'll_list' : ll_list, 'acc_list' : accuracy_list, 'f1_list' : f1_list})
-    df_metrics['f1_ma'] = df_metrics['f1_list'].rolling(window=10).mean()
-    df_metrics['ll_ma'] = df_metrics['ll_list'].rolling(window=10).mean()
-    df_metrics['ac_ma'] = df_metrics['acc_list'].rolling(window=10).mean()
-
-    logger.info(f'Number of trained routine : {selected_models}')
-
-    if selected_models > 1000:
-        subset_idx = 1000
-    else:
-        subset_idx = selected_models
-
-    sns.lineplot( x="row_list", y="f1_ma", data=df_metrics.iloc[:subset_idx] )
-    chart_save_image(plt=plt, f_size=(24, 8), left=0.05, right=0.97, bottom=0.05, top=0.97, wspace=0.0, hspace=0.0, fileName='./parital_fit_f1_metrics_plot.png')
-
-    sns.lineplot( x="row_list", y="ll_ma", data=df_metrics.iloc[:subset_idx] )
-    chart_save_image(plt=plt, f_size=(24, 8), left=0.05, right=0.97, bottom=0.05, top=0.97, wspace=0.0, hspace=0.0, fileName='./parital_fit_ll_metrics_plot.png')
-
-    sns.lineplot( x="row_list", y="ac_ma", data=df_metrics.iloc[:subset_idx] )
-    chart_save_image(plt=plt, f_size=(24, 8), left=0.05, right=0.97, bottom=0.05, top=0.97, wspace=0.0, hspace=0.0, fileName='./parital_fit_ac_metrics_plot.png')
 
     return None
 

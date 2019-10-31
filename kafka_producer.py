@@ -22,8 +22,6 @@ from time import time, sleep
 from json import dumps
 
 from kafka import KafkaProducer
-import subprocess
-
 
 def check_kafka_prcocess(logger=None):
     ''' Check if the kafka process is running or not '''
@@ -60,7 +58,7 @@ def list_topics(logger=None, kafka_path=None):
 
     # logger.info(f'kafka_path : {kafka_path}')
 
-    cmd_string = f'{kafka_path}bin/kafka-topics.sh --list --zookeeper localhost:2181'
+    cmd_string = f'sudo {kafka_path}/bin/kafka-topics.sh --list --zookeeper localhost:2181'
     list_of_topics = subprocess.check_output(cmd_string, stderr=subprocess.STDOUT, shell=True)
     list_of_topics = [i.lower() for i in list_of_topics.decode("utf-8").split("\n") if len(i) > 0 and i.lower() != '__consumer_offsets']
 
@@ -85,7 +83,7 @@ def delete_all_topics(logger=None, kafka_path=None, list_of_topics=None):
 
     for topic in list_of_topics:
 
-        cmd_string = f'{kafka_path}bin/kafka-topics.sh --zookeeper localhost:2181 -delete -topic {topic}'
+        cmd_string = f'sudo {kafka_path}/bin/kafka-topics.sh --zookeeper localhost:2181 -delete -topic {topic}'
         cmd_status = subprocess.check_output(cmd_string, stderr=subprocess.STDOUT, shell=True)
         cmd_output = cmd_status.decode('utf-8').split('\n')[0]
 
@@ -97,7 +95,7 @@ def delete_all_topics(logger=None, kafka_path=None, list_of_topics=None):
 def create_topic(logger=None, kafka_path=None, topic=None):
     ''' Routine will create a new topic assuming delete_all_topics will run before this routine '''
 
-    cmd_string = f'{kafka_path}bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic {topic.lower()}'
+    cmd_string = f'sudo {kafka_path}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic {topic.lower()}'
     cmd_status = subprocess.check_output(cmd_string, stderr=subprocess.STDOUT, shell=True)
     cmd_output = cmd_status.decode('utf-8').split('\n')[0]
 
@@ -148,12 +146,13 @@ def run_producer(logger=None, topic=None, df=None, target=None):
     logger.info(f'Publishing messages to the topic : {topic}')
 
     for i in range(len(df)):
-        X = df.iloc(i)
+        X = df[:i].values
         y = df[target][i]
         data = {'X' : X.tolist(), 'y' : y.tolist()}
         # Need to convert the ndarray as it is not serializable and it need to be converted tolist()
         producer.send(f'{topic}', value=data)
         #samplerate of 1 second
+        print(i)
         sleep(1)
     return None
 
@@ -168,7 +167,7 @@ def main(logger=None, kafka_path=None, filepath=None):
 
     kafka_status = check_kafka_prcocess(logger=logger)
 
-    if kafka_status :
+    if kafka_status:
         list_of_topics = list_topics(logger=logger, kafka_path=kafka_path)
 
         # *************************************** WARNING ***************************************
