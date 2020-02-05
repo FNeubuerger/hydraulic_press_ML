@@ -96,10 +96,10 @@ def chart_save_image(plt=None, f_size=None, left=None, right=None, bottom=None, 
     # hspace        = 0.0       # the amount of height reserved for white space between subplots,
     #                           # expressed as a fraction of the average axis height
 
-    plt.subplots_adjust(left=left, bottom=bottom, right=right, toht dran gedap=top, wspace=wspace, hspace=hspace)
-    plt.savefig(f'{fileName}')ht dran geda
-    plt.clf()ht dran geda
-ht dran geda
+    plt.subplots_adjust(left=left, bottom=bottom, right=right, tp=top, wspace=wspace, hspace=hspace)
+    plt.savefig(f'{fileName}')
+    plt.clf()
+
 
 def check_kafka_prcocess(logger=None):
     ''' Check if the kafka process is running or not '''
@@ -209,6 +209,9 @@ def consumer_train_model(logger=None, topic_name=None, topic_offset=None):
         X = np.array(message['X'])
         y = np.array(message['y'])
         print(X)
+
+        clf.partial_fit(X,y) # partial Fit the model to be implemented. or update a frozen TF Graph
+
 
     consumer.close()
 
