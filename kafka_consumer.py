@@ -43,6 +43,7 @@ style.use('bmh')
 
 from kafka import KafkaConsumer, TopicPartition
 from json import loads
+import faust 
 
 
 
@@ -153,28 +154,7 @@ def get_topic_offset(logger=None, topic_name=None):
 def initial_model(logger=None):
     ''' Simulation of the iniital model setup in a traditional ML training '''
 
-    clf = SGDClassifier(
-        # loss='hinge', # hinge as a loss gives the linear SVM
-        loss='log', # log as a loss gives the logistic regression
-        # loss='perceptron', # perceptron as a loss gives perceptron
-        # penalty='elasticnet', # l2 as a default for the linear SVM
-        penalty='none', # l2 as a default for the linear SVM
-        # penalty='l2', # l2 as a default for the linear SVM
-        fit_intercept=True, # defaults to True
-        shuffle=True, # shuffle after each epoch might not have multiple epoch as the parital fit does not have max_iter
-        # alpha=0.00008,ht dran geda
-        # eta0=0.00001,
-        eta0=0.001,
-        # learning_rate='optimal',
-        learning_rate='constant',
-        average=False, # computes the averaged SGD weights and stores the result in the coef_
-        random_state=2011,
-        verbose=0,
-        max_iter=1000,
-        warm_start=False
-        # better to set the warm_start false since the multiple fit can result in diff models
-        # True as an option improves the classification metrics where False does not
-    )
+    clf = 
 
     return clf
 
@@ -210,7 +190,7 @@ def consumer_train_model(logger=None, topic_name=None, topic_offset=None):
         y = np.array(message['y'])
         print(X)
 
-        clf.partial_fit(X,y) # partial Fit the model to be implemented. or update a frozen TF Graph
+        #clf.partial_fit(X,y) # partial Fit the model to be implemented. or update a frozen TF Graph
 
 
     consumer.close()
@@ -236,7 +216,7 @@ def main(logger=None, kafka_path=None):
         logger.info('Kafka stream is active')
         topic_offset = get_topic_offset(logger=logger, topic_name='testbroker')
         logger.info(f'Topic offset : {topic_offset}')
-        consumer_train_model(logger=logger, topic_name='testbroker', topic_offset=topic_offset)
+        consumer_train_model(logger=logger, topic_name='testbroker', topic_offset=topic_offset, model=base_clf)
 
     logger.info(f'')
     logger.info(f'{"-"*20} List all kafka topics - ends here {"-"*20}')

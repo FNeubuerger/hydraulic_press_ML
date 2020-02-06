@@ -152,7 +152,7 @@ def run_producer(logger=None, topic=None, df=None, target=None):
         # Need to convert the ndarray as it is not serializable and it need to be converted tolist()
         producer.send(f'{topic}', value=data)
         #samplerate of 1 second
-        print(i)
+        print(data)
         sleep(1)
     return None
 
