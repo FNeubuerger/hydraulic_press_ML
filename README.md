@@ -10,3 +10,9 @@ Start Zookeeper and Kafka with the corresponding python scripts. (Be sure to upd
 Run the Producer to stream Data from a csv file
 
 Run the Consumer to handle incoming data and do processing on it.
+
+# Ressources
+
+Some Jupyter Notebooks für Data Preparation and Model Prototyping with Tensorflow
+
+Helper scripts for Kafka Streaming

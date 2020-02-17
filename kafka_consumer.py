@@ -251,7 +251,7 @@ if __name__ == "__main__":
 
     random.seed(2011)
 
-    kafka_path = '~/kafka_2.11-2.1.0/'
+    kafka_path = '~/kafka_2.12-2.4.0/'
 
     Test_case = f'Kafka consumer code module : {LOG_TS}'
     Test_comment = '-' * len(Test_case)
