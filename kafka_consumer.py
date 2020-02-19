@@ -18,8 +18,6 @@ import pandas as pd
 from time import time, sleep
 from json import dumps
 
-from kafka import KafkaProducer
-
 from sklearn import datasets
 from sklearn.preprocessing import MinMaxScaler
 
@@ -41,7 +39,7 @@ matplotlib.rcParams['font.size'] = 10
 
 style.use('bmh')
 
-from kafka import KafkaConsumer, TopicPartition
+from kafka import KafkaProducer, KafkaConsumer, TopicPartition
 from json import loads
 import faust 
 
@@ -200,11 +198,11 @@ def consumer_train_model(logger=None, topic_name=None, topic_offset=None, base_m
         # make a prediction with the new model if model is good
         prediction = clf.predict(X)
         print(prediction)
-
+        
 
     consumer.close()
 
-    return clf
+    return None
 
 def consumer_apply_model(logger=None, topic_name=None, topic_offset=None, base_model=initial_model(logger=logger)):
     ''' Consume the kafka message broker stream and partial fit the model '''
@@ -231,15 +229,14 @@ def consumer_apply_model(logger=None, topic_name=None, topic_offset=None, base_m
         y = np.array(message['y'])
         print(X)
         prediction = clf.predict(X)
-        print(prediction)
-
+        print(y, prediction)
 
     consumer.close()
 
     return None
 
 
-def main(logger=None, kafka_path=None, train==False):
+def main(logger=None, kafka_path=None, train=False):
     ''' Main routine to call the entire process flow '''
 
     # Main call --- Process starts
@@ -257,7 +254,7 @@ def main(logger=None, kafka_path=None, train==False):
         topic_offset = get_topic_offset(logger=logger, topic_name='testbroker')
         logger.info(f'Topic offset : {topic_offset}')
         if train==True:
-            clf = consumer_train_model(logger=logger, topic_name='testbroker', topic_offset=topic_offset, base_model=base_clf)
+            consumer_train_model(logger=logger, topic_name='testbroker', topic_offset=topic_offset, base_model=base_clf)
         else:
             consumer_apply_model(logger=logger, topic_name='testbroker', topic_offset=topic_offset, base_model=base_clf)
     logger.info(f'')
