@@ -45,7 +45,7 @@ from kafka import KafkaConsumer, TopicPartition
 from json import loads
 import faust 
 
-
+import tensorflow as tf
 
 def delete_old_log_files(delete_flag=False, logger=None, extension_list=None):
     ''' Function to delete the old log files cleanup process '''
@@ -165,17 +165,10 @@ def initial_model(logger=None):
 
 
 
-def consumer_train_model(logger=None, topic_name=None, topic_offset=None):
+def consumer_train_model(logger=None, topic_name=None, topic_offset=None, base_model=initial_model(logger=logger)):
     ''' Consume the kafka message broker stream and partial fit the model '''
 
-    row_list = []
-    ll_list = []
-    accuracy_list = []
-    f1_list = []
-
-    selected_models = 0
-
-    clf = initial_model(logger=logger)
+    clf = base_model
 
     consumer = KafkaConsumer(
                                topic_name,
@@ -185,8 +178,6 @@ def consumer_train_model(logger=None, topic_name=None, topic_offset=None):
                                # group_id='consumer_1_group_2',   # The group_id is used by kafka to store the latest offset
                                value_deserializer=lambda x: loads(x.decode('utf-8'))
                                )
-
-    counter = 1
 
     for message in consumer:
         message = message.value
@@ -198,12 +189,12 @@ def consumer_train_model(logger=None, topic_name=None, topic_offset=None):
         #Fit Model to new data
         clf.fit(X,y) # partial Fit the model to be implemented. or update a frozen TF Graph
         # evaluate Model here we can catch bad behaviour
-        loss, acc = clf.evaluate(test_X, test_y, verbose=2)
-        #print result of evaluation. needs more handling
-        print('Restored model, accuracy: {:5.2f}%'.format(100*acc))
+        # loss, acc = clf.evaluate(test_X, test_y, verbose=2)
+        # print result of evaluation. needs more handling
+        # print('Restored model, accuracy: {:5.2f}%'.format(100*acc))
         # make a prediction with the new model if model is good
         prediction = clf.predict(X)
-        
+        print(prediction)
 
 
     consumer.close()
@@ -229,7 +220,7 @@ def main(logger=None, kafka_path=None):
         logger.info('Kafka stream is active')
         topic_offset = get_topic_offset(logger=logger, topic_name='testbroker')
         logger.info(f'Topic offset : {topic_offset}')
-        consumer_train_model(logger=logger, topic_name='testbroker', topic_offset=topic_offset, model=base_clf)
+        consumer_train_model(logger=logger, topic_name='testbroker', topic_offset=topic_offset, base_model=base_clf)
 
     logger.info(f'')
     logger.info(f'{"-"*20} List all kafka topics - ends here {"-"*20}')
