@@ -18,8 +18,6 @@ import pandas as pd
 from time import time, sleep
 from json import dumps
 
-from kafka import KafkaProducer
-
 from sklearn import datasets
 from sklearn.preprocessing import MinMaxScaler
 
@@ -41,11 +39,11 @@ matplotlib.rcParams['font.size'] = 10
 
 style.use('bmh')
 
-from kafka import KafkaConsumer, TopicPartition
+from kafka import KafkaProducer, KafkaConsumer, TopicPartition
 from json import loads
 import faust 
 
-
+import tensorflow as tf
 
 def delete_old_log_files(delete_flag=False, logger=None, extension_list=None):
     ''' Function to delete the old log files cleanup process '''
@@ -165,17 +163,14 @@ def initial_model(logger=None):
 
 
 
-def consumer_train_model(logger=None, topic_name=None, topic_offset=None):
+def consumer_train_model(logger=None, topic_name=None, topic_offset=None, base_model=initial_model(logger=logger)):
     ''' Consume the kafka message broker stream and partial fit the model '''
 
-    row_list = []
-    ll_list = []
-    accuracy_list = []
-    f1_list = []
-
-    selected_models = 0
-
-    clf = initial_model(logger=logger)
+    clf = base_model
+    #if a keras model is passed
+    # clf.layers.pop()
+    # clf = tf.keras.sequential(clf,
+    # decision_layer)
 
     consumer = KafkaConsumer(
                                topic_name,
@@ -186,16 +181,15 @@ def consumer_train_model(logger=None, topic_name=None, topic_offset=None):
                                value_deserializer=lambda x: loads(x.decode('utf-8'))
                                )
 
-    counter = 1
-
     for message in consumer:
         message = message.value
-        
+        #append for sliding window processing?
         X = np.array(message['X'])
         y = np.array(message['y'])
         print(X)
         # append this for sliding window processing
         #Fit Model to new data
+
         clf.fit(X,y) # partial Fit the model to be implemented. or update a frozen TF Graph fit on batch with sliding window?
 
         ### THIS NEEDS A LOT OF STUFF
@@ -206,16 +200,44 @@ def consumer_train_model(logger=None, topic_name=None, topic_offset=None):
 
         # make a prediction with the new model if model is good
         prediction = clf.predict(X) #predict on batch? equivalent?
-        
 
+    consumer.close()
+
+    return None
+
+def consumer_apply_model(logger=None, topic_name=None, topic_offset=None, base_model=initial_model(logger=logger)):
+    ''' Consume the kafka message broker stream and partial fit the model '''
+
+    clf = base_model
+    #if a keras model is passed
+    # clf.layers.pop()
+    # clf = tf.keras.sequential(clf,
+    # decision_layer)
+
+    consumer = KafkaConsumer(
+                               topic_name,
+                               bootstrap_servers=['localhost:9092'],
+                               auto_offset_reset='earliest',
+                               enable_auto_commit=True,
+                               # group_id='consumer_1_group_2',   # The group_id is used by kafka to store the latest offset
+                               value_deserializer=lambda x: loads(x.decode('utf-8'))
+                               )
+
+    for message in consumer:
+        message = message.value
+        #append for sliding window processing?
+        X = np.array(message['X'])
+        y = np.array(message['y'])
+        print(X)
+        prediction = clf.predict(X)
+        print(y, prediction)
 
     consumer.close()
 
     return None
 
 
-
-def main(logger=None, kafka_path=None):
+def main(logger=None, kafka_path=None, train=False):
     ''' Main routine to call the entire process flow '''
 
     # Main call --- Process starts
@@ -232,8 +254,10 @@ def main(logger=None, kafka_path=None):
         logger.info('Kafka stream is active')
         topic_offset = get_topic_offset(logger=logger, topic_name='testbroker')
         logger.info(f'Topic offset : {topic_offset}')
-        consumer_train_model(logger=logger, topic_name='testbroker', topic_offset=topic_offset, model=base_clf)
-
+        if train==True:
+            consumer_train_model(logger=logger, topic_name='testbroker', topic_offset=topic_offset, base_model=base_clf)
+        else:
+            consumer_apply_model(logger=logger, topic_name='testbroker', topic_offset=topic_offset, base_model=base_clf)
     logger.info(f'')
     logger.info(f'{"-"*20} List all kafka topics - ends here {"-"*20}')
     logger.info(f'')
@@ -277,7 +301,7 @@ if __name__ == "__main__":
     logger.info(Test_comment)
 
     delete_old_log_files(delete_flag=DELETE_FLAG, logger=logger, extension_list=extension_list)
-    main(logger=logger, kafka_path=kafka_path)
+    main(logger=logger, kafka_path=kafka_path, train=False)
 
 
     logger.info(Test_comment)
