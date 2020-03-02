@@ -155,8 +155,8 @@ def initial_model(logger=None):
     ''' Simulation of the iniital model setup in a traditional ML training '''
 
     clf = tf.keras.models.load_model('models/LSTM/LSTM_benchmark_model_valve_condition.h5')
-    # include top=false?
-    # base model set to not trainable
+    # include top=false? .pop to remove last layer
+    # base model set to not trainable. freeze
     # make new prediction layer
     # stack prediction layer on top of base model
     # only train the prediction layer
@@ -194,15 +194,18 @@ def consumer_train_model(logger=None, topic_name=None, topic_offset=None):
         X = np.array(message['X'])
         y = np.array(message['y'])
         print(X)
-
+        # append this for sliding window processing
         #Fit Model to new data
-        clf.fit(X,y) # partial Fit the model to be implemented. or update a frozen TF Graph
+        clf.fit(X,y) # partial Fit the model to be implemented. or update a frozen TF Graph fit on batch with sliding window?
+
+        ### THIS NEEDS A LOT OF STUFF
         # evaluate Model here we can catch bad behaviour
         loss, acc = clf.evaluate(test_X, test_y, verbose=2)
         #print result of evaluation. needs more handling
         print('Restored model, accuracy: {:5.2f}%'.format(100*acc))
+
         # make a prediction with the new model if model is good
-        prediction = clf.predict(X)
+        prediction = clf.predict(X) #predict on batch? equivalent?
         
 
 
